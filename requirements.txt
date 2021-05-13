@@ -3,3 +3,4 @@ PyYAML
 matplotlib
 h5py
 spglib
+ase
