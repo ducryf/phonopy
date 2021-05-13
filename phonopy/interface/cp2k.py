@@ -40,6 +40,8 @@ from fractions import Fraction
 from os import path
 import numpy as np
 
+from ase import io
+
 from phonopy.file_IO import iter_collect_forces
 from phonopy.interface.vasp import (check_forces, get_drift_forces)
 from phonopy.structure.atoms import (PhonopyAtoms, symbol_map)
@@ -123,17 +125,26 @@ def read_cp2k(filename):
     if '+cell_ref' in cp2k_cell:
         print("WARNING: the &CELL_REF section must be manually adjusted")
 
-    cp2k_coord = subsys['+coord']
+    try:
+        atoms = io.read(subsys['+topology']['coord_file_name'])
+        positions = atoms.positions
+        numbers = atoms.get_atomic_numbers()
+        cp2k_coord = {
+            'scaled': False
+            }
+        subsys['+coord'] = cp2k_coord  # overwriting the coordinates
+    except:
+        cp2k_coord = subsys['+coord']
 
-    numbers = []
-    positions = []
+        numbers = []
+        positions = []
 
-    for coordline in cp2k_coord['*']:
-        # coordinates are a series of strings according to the CP2K schema
-        fields = coordline.split()
-        numbers += [symbol_map[fields[0]]]
-        # positions can also be fractions
-        positions += [[float(Fraction(f)) for f in fields[1:4]]]
+        for coordline in cp2k_coord['*']:
+            # coordinates are a series of strings according to the CP2K schema
+            fields = coordline.split()
+            numbers += [symbol_map[fields[0]]]
+            # positions can also be fractions
+            positions += [[float(Fraction(f)) for f in fields[1:4]]]
 
     if cp2k_coord.get('scaled', False):  # the keyword can be unavailable, true or false
         return (PhonopyAtoms(numbers=numbers, cell=unit_cell, scaled_positions=positions), tree)
