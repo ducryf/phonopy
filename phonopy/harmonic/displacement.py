@@ -56,7 +56,8 @@ directions_diag = np.array([[1, 0, 0],
 def directions_to_displacement_dataset(displacement_directions,
                                        distance,
                                        supercell):
-    lattice = supercell.get_cell()
+    #lattice = supercell.get_cell()
+    lattice = np.identity(3)
     first_atoms = []
     for disp in displacement_directions:
         direction = disp[1:]
